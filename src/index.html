@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GreenSun Energies</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body>
+    <header>
+      <!-- Navigation Component -->
+      <div id="navigation"></div>
+    </header>
+
+    <main>
+      <!-- Carousel Component -->
+      <div id="about-us"></div>
+
+      <!-- Services Component -->
+      <div id="services"></div>
+
+      <!-- Team Component -->
+      <div id="team"></div>
+
+      <!-- Contact Form Component -->
+      <div id="contact-form"></div>
+    </main>
+
+    <footer>
+      <!-- Footer Component -->
+      <div id="footer"></div>
+    </footer>
+
+    <script>
+      // Dynamically load components
+      const loadComponent = (id, filePath) => {
+        fetch(filePath)
+          .then((response) => response.text())
+          .then((html) => {
+            document.getElementById(id).innerHTML = html;
+          })
+          .catch((error) => console.error(`Error loading ${filePath}:`, error));
+      };
+
+      loadComponent("navigation", "components/navigation.html");
+      loadComponent("about-us", "components/about-us.html");
+      loadComponent("services", "components/services.html");
+      loadComponent("team", "components/team.html");
+      loadComponent("contact-form", "components/contact-form.html");
+      loadComponent("footer", "components/footer.html");
+    </script>
+    <script src="assets/js/script.js"></script>
+  </body>
+</html>

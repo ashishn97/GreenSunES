@@ -40,6 +40,12 @@ header h1 {
   justify-content: space-between;
 }
 
+.logo {
+  flex-grow: 1;
+  flex-basis: 0;
+  text-align: left;
+}
+
 .logo img {
   height: 50px;
   width: auto;
@@ -54,12 +60,26 @@ nav ul {
   gap: 20px;
 }
 
+.nav-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow:
+    0 0 10px #52b788,
+    0 0 20px #52b788,
+    0 0 30px #52b788,
+    0 0 40px #52b788;
+  animation: glow 2s linear infinite;
+}
+
 .nav-links {
   list-style: none;
   display: flex;
   gap: 20px;
   margin: 0;
   padding: 0;
+  flex-grow: 1;
+  flex-basis: 0;
 }
 
 nav a,
@@ -187,12 +207,13 @@ nav a:hover,
   border-radius: 10px;
   background-color: #ffffff;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 300px;
+  width: 250px;
 }
 
 .team-member img {
   width: 100%;
   max-width: 150px;
+  max-height: 150px;
   height: auto;
   border-radius: 50%;
   margin-bottom: 10px;
@@ -201,17 +222,8 @@ nav a:hover,
 
 /* Contact Form */
 .contact-form {
-  padding: 40px 20px;
-  background-color: #e9f5e9; /* Light green background */
   text-align: center;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.contact-form h2 {
-  font-size: 2rem;
-  color: #2d6a4f;
-  margin-bottom: 20px;
+  flex: 0 0 50%;
 }
 
 .contact-form label {
@@ -229,13 +241,20 @@ nav a:hover,
 .contact-form textarea {
   width: 100%;
   max-width: 600px;
-  padding: 15px;
-  margin: 10px auto;
+  padding: 10px;
+  margin: 5px 0;
   border: 1px solid #2d6a4f;
   border-radius: 5px;
   font-size: 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: block;
+}
+
+.contact-info > pre {
+  margin: 0;
+}
+
+.include-whitespace {
+  white-space: pre-wrap
 }
 
 .contact-form input:focus,
@@ -243,6 +262,10 @@ nav a:hover,
   outline: none;
   border-color: #40916c;
   box-shadow: 0 0 5px rgba(64, 145, 108, 0.5);
+}
+
+.align-right {
+  text-align: right;
 }
 
 .contact-form button {
@@ -269,6 +292,49 @@ nav a:hover,
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+/* Contact Section */
+.contact-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 40px 20px;
+  background-color: #e9f5e9; /* Light green background */
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.contact-info-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.contact-section h2 {
+  font-size: 2rem;
+  color: #2d6a4f;
+  margin-bottom: 20px;
+}
+
+.contact-details {
+  text-align: left;
+}
+
+.contact-info {
+  flex: 0 0 50%;
+}
+
+.contact-details h2 {
+  font-size: 2rem;
+  color: #2d6a4f;
+  margin-bottom: 20px;
+}
+
+.contact-details p {
+  font-size: 1rem;
+  color: #333;
+  margin: 5px 0;
 }
 
 /* About Us Section */
@@ -314,11 +380,43 @@ footer p {
   margin: 0;
 }
 
+/* Metrics Section */
+.metrics {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.metric {
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.metric h3 {
+  font-size: 2rem;
+  color: #52b788;
+  margin: 0;
+}
+
+.metric p {
+  font-size: 1rem;
+  color: #000000;
+  margin: 5px 0 0;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   nav ul {
     flex-direction: column;
     gap: 10px;
+  }
+
+  .metrics {
+    flex-direction: column;
   }
 
   .nav-container {
@@ -343,5 +441,48 @@ footer p {
 
   .about-us-image img {
     max-width: 100%;
+  }
+}
+
+@keyframes glow {
+  0% {
+    text-shadow:
+      0 0 10px #52b788,
+      0 0 20px #52b788,
+      0 0 30px #52b788,
+      0 0 40px #52b788;
+    color: #fff;
+  }
+  25% {
+    text-shadow:
+      0 0 10px #40916c,
+      0 0 20px #40916c,
+      0 0 30px #40916c,
+      0 0 40px #40916c;
+    color: #b7e4c7;
+  }
+  50% {
+    text-shadow:
+      0 0 10px #ffd60a,
+      0 0 20px #ffd60a,
+      0 0 30px #ffd60a,
+      0 0 40px #ffd60a;
+    color: #fff3bf;
+  }
+  75% {
+    text-shadow:
+      0 0 10px #00b4d8,
+      0 0 20px #00b4d8,
+      0 0 30px #00b4d8,
+      0 0 40px #00b4d8;
+    color: #caf0f8;
+  }
+  100% {
+    text-shadow:
+      0 0 10px #52b788,
+      0 0 20px #52b788,
+      0 0 30px #52b788,
+      0 0 40px #52b788;
+    color: #fff;
   }
 }

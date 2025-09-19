@@ -3,8 +3,6 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -30,11 +28,32 @@ jobs:
         uses: actions/configure-pages@v4
         
       - name: Replace environment variables in config.js
+        env:
+          EMAILJS_PUBLIC_KEY: ${{ secrets.EMAILJS_PUBLIC_KEY }}
+          EMAILJS_SERVICE_ID: ${{ secrets.EMAILJS_SERVICE_ID }}
+          EMAILJS_TEMPLATE_ID: ${{ secrets.EMAILJS_TEMPLATE_ID }}
         run: |
+          # Check if secrets are available
+          if [ -z "$EMAILJS_PUBLIC_KEY" ] || [ -z "$EMAILJS_SERVICE_ID" ] || [ -z "$EMAILJS_TEMPLATE_ID" ]; then
+            echo "Warning: One or more EmailJS secrets are not set. Please check your repository secrets."
+            echo "Required secrets: EMAILJS_PUBLIC_KEY, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID"
+            exit 1
+          fi
+          
           # Replace placeholders with actual environment variables
-          sed -i "s/EMAILJS_PUBLIC_KEY_PLACEHOLDER/${{ secrets.EMAILJS_PUBLIC_KEY }}/g" config.js
-          sed -i "s/EMAILJS_SERVICE_ID_PLACEHOLDER/${{ secrets.EMAILJS_SERVICE_ID }}/g" config.js
-          sed -i "s/EMAILJS_TEMPLATE_ID_PLACEHOLDER/${{ secrets.EMAILJS_TEMPLATE_ID }}/g" config.js
+          sed -i "s/EMAILJS_PUBLIC_KEY_PLACEHOLDER/${EMAILJS_PUBLIC_KEY}/g" config.js
+          sed -i "s/EMAILJS_SERVICE_ID_PLACEHOLDER/${EMAILJS_SERVICE_ID}/g" config.js
+          sed -i "s/EMAILJS_TEMPLATE_ID_PLACEHOLDER/${EMAILJS_TEMPLATE_ID}/g" config.js
+          
+          # Verify replacements were made
+          echo "Checking if replacements were successful..."
+          if grep -q "PLACEHOLDER" config.js; then
+            echo "Error: Some placeholders were not replaced!"
+            grep "PLACEHOLDER" config.js
+            exit 1
+          else
+            echo "All placeholders successfully replaced."
+          fi
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

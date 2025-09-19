@@ -27,7 +27,7 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
         
-      - name: Replace environment variables in config.js
+      - name: Replace environment variables in script.js
         env:
           EMAILJS_PUBLIC_KEY: ${{ secrets.EMAILJS_PUBLIC_KEY }}
           EMAILJS_SERVICE_ID: ${{ secrets.EMAILJS_SERVICE_ID }}
@@ -41,15 +41,15 @@ jobs:
           fi
           
           # Replace placeholders with actual environment variables
-          sed -i "s/EMAILJS_PUBLIC_KEY_PLACEHOLDER/${EMAILJS_PUBLIC_KEY}/g" config.js
-          sed -i "s/EMAILJS_SERVICE_ID_PLACEHOLDER/${EMAILJS_SERVICE_ID}/g" config.js
-          sed -i "s/EMAILJS_TEMPLATE_ID_PLACEHOLDER/${EMAILJS_TEMPLATE_ID}/g" config.js
+          sed -i "s/EMAILJS_PUBLIC_KEY_PLACEHOLDER/${EMAILJS_PUBLIC_KEY}/g" script.js
+          sed -i "s/EMAILJS_SERVICE_ID_PLACEHOLDER/${EMAILJS_SERVICE_ID}/g" script.js
+          sed -i "s/EMAILJS_TEMPLATE_ID_PLACEHOLDER/${EMAILJS_TEMPLATE_ID}/g" script.js
           
           # Verify replacements were made
           echo "Checking if replacements were successful..."
-          if grep -q "PLACEHOLDER" config.js; then
+          if grep -q "PLACEHOLDER" script.js; then
             echo "Error: Some placeholders were not replaced!"
-            grep "PLACEHOLDER" config.js
+            grep "PLACEHOLDER" script.js
             exit 1
           else
             echo "All placeholders successfully replaced."

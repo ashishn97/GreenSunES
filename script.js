@@ -1,3 +1,38 @@
+// EmailJS Configuration (replaced during deployment)
+const EMAILJS_PUBLIC_KEY = 'EMAILJS_PUBLIC_KEY_PLACEHOLDER';
+const EMAILJS_SERVICE_ID = 'EMAILJS_SERVICE_ID_PLACEHOLDER';
+const EMAILJS_TEMPLATE_ID = 'EMAILJS_TEMPLATE_ID_PLACEHOLDER';
+
+// Domain validation for security
+function isValidEnvironment() {
+    const allowedDomains = [
+        'greensunenergyservices.co.in',
+        'localhost',
+        '127.0.0.1'
+    ];
+    const currentDomain = window.location.hostname;
+    
+    // Allow GitHub Pages domains (username.github.io or custom domain)
+    const isGitHubPages = currentDomain.includes('.github.io') || 
+                         currentDomain === 'greensunenergyservices.co.in';
+    
+    return allowedDomains.includes(currentDomain) || isGitHubPages;
+}
+
+// Rate limiting helper
+function checkRateLimit() {
+    const now = Date.now();
+    const lastSubmission = localStorage.getItem('lastFormSubmission');
+    const minInterval = 30000; // 30 seconds minimum between submissions
+    
+    if (lastSubmission && (now - parseInt(lastSubmission)) < minInterval) {
+        return false;
+    }
+    
+    localStorage.setItem('lastFormSubmission', now.toString());
+    return true;
+}
+
 // Theme Management
 class ThemeManager {
     constructor() {
@@ -187,18 +222,16 @@ class AnimationManager {
 class FormManager {
     constructor() {
         this.form = document.querySelector('.form');
-        this.securityConfig = new SecurityConfig();
         this.initializeEmailJS();
         this.init();
     }
 
     initializeEmailJS() {
         // Initialize EmailJS with secure configuration
-        if (typeof emailjs !== 'undefined' && this.securityConfig.isValidEnvironment()) {
-            const publicKey = this.securityConfig.getPublicKey();
-            console.log('EmailJS Public Key:', publicKey);
-            if (publicKey) {
-                emailjs.init(publicKey);
+        if (typeof emailjs !== 'undefined' && isValidEnvironment()) {
+            console.log('EmailJS Public Key:', EMAILJS_PUBLIC_KEY);
+            if (EMAILJS_PUBLIC_KEY && EMAILJS_PUBLIC_KEY !== 'EMAILJS_PUBLIC_KEY_PLACEHOLDER') {
+                emailjs.init(EMAILJS_PUBLIC_KEY);
             }
         }
     }
@@ -214,12 +247,12 @@ class FormManager {
         e.preventDefault();
         
         // Security checks
-        if (!this.securityConfig.isValidEnvironment()) {
+        if (!isValidEnvironment()) {
             this.showErrorMessage('Invalid environment detected.');
             return;
         }
         
-        if (!this.securityConfig.checkRateLimit()) {
+        if (!checkRateLimit()) {
             this.showErrorMessage('Please wait before submitting another message.');
             return;
         }
@@ -244,11 +277,9 @@ class FormManager {
         try {
             // Send email using EmailJS if available
             if (typeof emailjs !== 'undefined') {
-                const serviceId = this.securityConfig.getServiceId();
-                const templateId = this.securityConfig.getTemplateId();
-                
-                if (serviceId && templateId) {
-                    await emailjs.send(serviceId, templateId, templateParams);
+                if (EMAILJS_SERVICE_ID && EMAILJS_SERVICE_ID !== 'EMAILJS_SERVICE_ID_PLACEHOLDER' &&
+                    EMAILJS_TEMPLATE_ID && EMAILJS_TEMPLATE_ID !== 'EMAILJS_TEMPLATE_ID_PLACEHOLDER') {
+                    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
                     this.showSuccessMessage('Message sent successfully!');
                 } else {
                     throw new Error('Configuration error');

@@ -196,6 +196,7 @@ class FormManager {
         // Initialize EmailJS with secure configuration
         if (typeof emailjs !== 'undefined' && this.securityConfig.isValidEnvironment()) {
             const publicKey = this.securityConfig.getPublicKey();
+            console.log('EmailJS Public Key:', publicKey);
             if (publicKey) {
                 emailjs.init(publicKey);
             }

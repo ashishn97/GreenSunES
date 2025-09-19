@@ -48,8 +48,6 @@ class SecurityConfig {
         // Allow GitHub Pages domains (username.github.io or custom domain)
         const isGitHubPages = currentDomain.includes('.github.io') || 
                              currentDomain === 'greensunenergyservices.co.in';
-
-        console.log('Current domain:', currentDomain, isGitHubPages, allowedDomains.includes(currentDomain));
         
         return allowedDomains.includes(currentDomain) || isGitHubPages;
     }

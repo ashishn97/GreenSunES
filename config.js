@@ -38,7 +38,7 @@ class SecurityConfig {
     // Validate environment (basic security check)
     isValidEnvironment() {
         // Check if running in expected domain (add your domain here)
-        const allowedDomains = ['localhost', '127.0.0.1', 'greensun.com', 'www.greensun.com'];
+        const allowedDomains = ['greensunenergyservices.co.in'];
         const currentDomain = window.location.hostname;
         return allowedDomains.includes(currentDomain);
     }

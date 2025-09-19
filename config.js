@@ -38,9 +38,18 @@ class SecurityConfig {
     // Validate environment (basic security check)
     isValidEnvironment() {
         // Check if running in expected domain (add your domain here)
-        const allowedDomains = ['greensunenergyservices.co.in'];
+        const allowedDomains = [
+            'greensunenergyservices.co.in',
+            'localhost',
+            '127.0.0.1'
+        ];
         const currentDomain = window.location.hostname;
-        return allowedDomains.includes(currentDomain);
+        
+        // Allow GitHub Pages domains (username.github.io or custom domain)
+        const isGitHubPages = currentDomain.includes('.github.io') || 
+                             currentDomain === 'greensunenergyservices.co.in';
+        
+        return allowedDomains.includes(currentDomain) || isGitHubPages;
     }
     
     // Rate limiting helper

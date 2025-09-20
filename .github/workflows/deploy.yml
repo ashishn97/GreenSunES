@@ -27,32 +27,27 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
         
-      - name: Replace environment variables in script.js
+      - name: Replace FormSubmit email in script.js
         env:
-          EMAILJS_PUBLIC_KEY: ${{ secrets.EMAILJS_PUBLIC_KEY }}
-          EMAILJS_SERVICE_ID: ${{ secrets.EMAILJS_SERVICE_ID }}
-          EMAILJS_TEMPLATE_ID: ${{ secrets.EMAILJS_TEMPLATE_ID }}
+          FORMSUBMIT_EMAIL: ${{ secrets.FORMSUBMIT_EMAIL }}
         run: |
-          # Check if secrets are available
-          if [ -z "$EMAILJS_PUBLIC_KEY" ] || [ -z "$EMAILJS_SERVICE_ID" ] || [ -z "$EMAILJS_TEMPLATE_ID" ]; then
-            echo "Warning: One or more EmailJS secrets are not set. Please check your repository secrets."
-            echo "Required secrets: EMAILJS_PUBLIC_KEY, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID"
+          # Check if FormSubmit email is available
+          if [ -z "$FORMSUBMIT_EMAIL" ]; then
+            echo "Warning: FORMSUBMIT_EMAIL secret is not set. Please add your email to repository secrets."
+            echo "Required secret: FORMSUBMIT_EMAIL"
             exit 1
           fi
           
-          # Replace placeholders with actual environment variables
-          sed -i "s/EMAILJS_PUBLIC_KEY_PLACEHOLDER/${EMAILJS_PUBLIC_KEY}/g" script.js
-          sed -i "s/EMAILJS_SERVICE_ID_PLACEHOLDER/${EMAILJS_SERVICE_ID}/g" script.js
-          sed -i "s/EMAILJS_TEMPLATE_ID_PLACEHOLDER/${EMAILJS_TEMPLATE_ID}/g" script.js
+          # Replace placeholder with actual email
+          sed -i "s/your-email@example.com/${FORMSUBMIT_EMAIL}/g" script.js
           
-          # Verify replacements were made
-          echo "Checking if replacements were successful..."
-          if grep -q "PLACEHOLDER" script.js; then
-            echo "Error: Some placeholders were not replaced!"
-            grep "PLACEHOLDER" script.js
+          # Verify replacement was made
+          echo "Checking if email replacement was successful..."
+          if grep -q "your-email@example.com" script.js; then
+            echo "Error: Email placeholder was not replaced!"
             exit 1
           else
-            echo "All placeholders successfully replaced."
+            echo "Email placeholder successfully replaced."
           fi
           
       - name: Upload artifact

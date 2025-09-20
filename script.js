@@ -1,7 +1,5 @@
-// EmailJS Configuration (replaced during deployment)
-const EMAILJS_PUBLIC_KEY = 'EMAILJS_PUBLIC_KEY_PLACEHOLDER';
-const EMAILJS_SERVICE_ID = 'EMAILJS_SERVICE_ID_PLACEHOLDER';
-const EMAILJS_TEMPLATE_ID = 'EMAILJS_TEMPLATE_ID_PLACEHOLDER';
+// FormSubmit Configuration
+const FORMSUBMIT_EMAIL = 'your-email@example.com'; // Replace with your actual email
 
 // Domain validation for security
 function isValidEnvironment() {
@@ -19,13 +17,13 @@ function isValidEnvironment() {
     return allowedDomains.includes(currentDomain) || isGitHubPages;
 }
 
-// Rate limiting helper
+// Rate limiting to prevent spam
 function checkRateLimit() {
-    const now = Date.now();
     const lastSubmission = localStorage.getItem('lastFormSubmission');
-    const minInterval = 30000; // 30 seconds minimum between submissions
+    const now = Date.now();
+    const cooldownPeriod = 30000; // 30 seconds
     
-    if (lastSubmission && (now - parseInt(lastSubmission)) < minInterval) {
+    if (lastSubmission && (now - parseInt(lastSubmission)) < cooldownPeriod) {
         return false;
     }
     
@@ -222,18 +220,29 @@ class AnimationManager {
 class FormManager {
     constructor() {
         this.form = document.querySelector('.form');
-        this.initializeEmailJS();
+        this.setupFormSubmit();
         this.init();
     }
 
-    initializeEmailJS() {
-        // Initialize EmailJS with secure configuration
-        if (typeof emailjs !== 'undefined' && isValidEnvironment()) {
-            console.log('EmailJS Public Key:', EMAILJS_PUBLIC_KEY);
-            if (EMAILJS_PUBLIC_KEY && EMAILJS_PUBLIC_KEY !== 'EMAILJS_PUBLIC_KEY_PLACEHOLDER') {
-                emailjs.init(EMAILJS_PUBLIC_KEY);
-            }
+    setupFormSubmit() {
+        // Configure form for FormSubmit
+        if (this.form && isValidEnvironment()) {
+            this.form.action = `https://formsubmit.co/${FORMSUBMIT_EMAIL}`;
+            this.form.method = 'POST';
+            
+            // Add hidden fields for FormSubmit configuration
+            this.addHiddenField('_subject', 'New Contact Form Submission - Green Sun Energy Services');
+            this.addHiddenField('_captcha', 'false');
+            this.addHiddenField('_template', 'table');
         }
+    }
+
+    addHiddenField(name, value) {
+        const hiddenField = document.createElement('input');
+        hiddenField.type = 'hidden';
+        hiddenField.name = name;
+        hiddenField.value = value;
+        this.form.appendChild(hiddenField);
     }
 
     init() {
@@ -259,14 +268,16 @@ class FormManager {
         
         // Get form data
         const formData = new FormData(this.form);
-        const templateParams = {
-            from_name: formData.get('from_name'),
-            from_email: formData.get('from_email'),
-            phone: formData.get('phone'),
-            service_type: formData.get('service_type'),
-            message: formData.get('message'),
-            to_email: 'greensunenergyservices@gmail.com'
-        };
+        const name = formData.get('name');
+        const email = formData.get('email');
+        const phone = formData.get('phone');
+        const message = formData.get('message');
+        
+        // Basic validation
+        if (!name || !email || !message) {
+            this.showErrorMessage('Please fill in all required fields.');
+            return;
+        }
         
         // Show loading state
         const submitBtn = this.form.querySelector('button[type="submit"]');
@@ -275,23 +286,22 @@ class FormManager {
         submitBtn.disabled = true;
         
         try {
-            // Send email using EmailJS if available
-            if (typeof emailjs !== 'undefined') {
-                if (EMAILJS_SERVICE_ID && EMAILJS_SERVICE_ID !== 'EMAILJS_SERVICE_ID_PLACEHOLDER' &&
-                    EMAILJS_TEMPLATE_ID && EMAILJS_TEMPLATE_ID !== 'EMAILJS_TEMPLATE_ID_PLACEHOLDER') {
-                    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-                    this.showSuccessMessage('Message sent successfully!');
-                } else {
-                    throw new Error('Configuration error');
-                }
+            // Submit form using FormSubmit
+            const response = await fetch(this.form.action, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                this.showSuccessMessage('Message sent successfully! We will get back to you soon.');
+                this.form.reset();
             } else {
-                // Fallback for when EmailJS is not loaded
-                this.showSuccessMessage('Form submitted successfully!');
+                throw new Error('Form submission failed');
             }
-            this.form.reset();
+            
         } catch (error) {
-            console.error('Email sending failed:', error);
-            this.showErrorMessage('Failed to send message. Please try again or contact us directly.');
+            console.error('Error sending message:', error);
+            this.showErrorMessage('Failed to send message. Please try again.');
         } finally {
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;

@@ -303,7 +303,7 @@ p {
 
 /* Hero Section */
 .hero {
-  padding: 120px 0 80px;
+  padding: 150px 0 80px;
   background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('assets/images/light_bg.jpg');
   display: flex;
   align-items: center;

@@ -1,5 +1,5 @@
 // FormSubmit Configuration
-const FORMSUBMIT_EMAIL = 'greensunenergy1622@gmail.com';
+const FORMSUBMIT_EMAIL = '74cda2e8753d7832aeb1e7be269ee848';
 
 // Domain validation for security
 function isValidEnvironment() {

@@ -1,12 +1,10 @@
 // FormSubmit Configuration
-const FORMSUBMIT_EMAIL = 'your-email@example.com'; // Replace with your actual email
+const FORMSUBMIT_EMAIL = 'greensunenergy1622@gmail.com';
 
 // Domain validation for security
 function isValidEnvironment() {
     const allowedDomains = [
-        'greensunenergyservices.co.in',
-        'localhost',
-        '127.0.0.1'
+        'greensunenergyservices.co.in'
     ];
     const currentDomain = window.location.hostname;
     
@@ -245,6 +243,25 @@ class FormManager {
         this.form.appendChild(hiddenField);
     }
 
+    isValidEmailDomain(email) {
+        // Extract domain from email
+        const emailDomain = email.split('@')[1]?.toLowerCase();
+        if (!emailDomain) return false;
+        
+        // Define allowed email domains
+        const allowedEmailDomains = [
+            'gmail.com',
+            'yahoo.com',
+            'outlook.com',
+            'hotmail.com',
+            'icloud.com',
+            'protonmail.com',
+            'greensunenergyservices.co.in'
+        ];
+        
+        return allowedEmailDomains.includes(emailDomain);
+    }
+
     init() {
         if (this.form) {
             this.form.addEventListener('submit', (e) => this.handleSubmit(e));
@@ -276,6 +293,12 @@ class FormManager {
         // Basic validation
         if (!name || !email || !message) {
             this.showErrorMessage('Please fill in all required fields.');
+            return;
+        }
+        
+        // Domain validation for email sender
+        if (!this.isValidEmailDomain(email)) {
+            this.showErrorMessage('Email submissions are restricted to authorized domains only.');
             return;
         }
         

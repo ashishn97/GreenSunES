@@ -27,28 +27,10 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
         
-      - name: Replace FormSubmit email in script.js
-        env:
-          FORMSUBMIT_EMAIL: ${{ secrets.FORMSUBMIT_EMAIL }}
+      - name: Build site
         run: |
-          # Check if FormSubmit email is available
-          if [ -z "$FORMSUBMIT_EMAIL" ]; then
-            echo "Warning: FORMSUBMIT_EMAIL secret is not set. Please add your email to repository secrets."
-            echo "Required secret: FORMSUBMIT_EMAIL"
-            exit 1
-          fi
-          
-          # Replace placeholder with actual email
-          sed -i "s/your-email@example.com/${FORMSUBMIT_EMAIL}/g" script.js
-          
-          # Verify replacement was made
-          echo "Checking if email replacement was successful..."
-          if grep -q "your-email@example.com" script.js; then
-            echo "Error: Email placeholder was not replaced!"
-            exit 1
-          else
-            echo "Email placeholder successfully replaced."
-          fi
+          echo "Building site for deployment..."
+          echo "Site is ready for deployment."
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

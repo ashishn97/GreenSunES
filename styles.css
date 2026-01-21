@@ -1056,3 +1056,52 @@ p {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--secondary-color);
 }
+/* Unified Footer Credit – Theme Safe */
+.footer-credit {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 16px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+.footer-credit .footer-text {
+  margin: 0;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+.footer-links {
+  display: flex;
+  gap: 14px;
+}
+.footer-credit-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.25s ease, opacity 0.25s ease;
+  opacity: 0.85;
+}
+.footer-credit-link:hover {
+  color: var(--primary-color);
+  opacity: 1;
+}
+@media (min-width: 768px) {
+  .footer-credit {
+    justify-content: space-between;
+    font-size: 14px;
+  }
+}
+/* Slight emphasis for Arka Ananta credit */
+.footer-arka {
+  font-weight: 500;                 
+  color: var(--text-color);         
+  opacity: 0.95;
+}
+
+.footer-arka:hover {
+  color: var(--primary-color);
+  opacity: 1;
+}
+
+/* End of styles.css */

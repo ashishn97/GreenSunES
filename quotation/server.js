@@ -1,6 +1,10 @@
-require('dotenv').config();
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.error("MongoDB Error:", err));
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 const PizZip = require('pizzip');
@@ -19,6 +23,20 @@ const OUTPUT_DIR = path.join(__dirname, 'output'); // Temporary dir for PDF conv
 if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR);
 }
+
+const QuoteSchema = new mongoose.Schema({
+  ref_no: String,
+  date: String,
+  client_name: String,
+  client_number: String,
+  vendor_name: String,
+  type: String,
+  kw: String,
+  base_cost: String,
+  final_amount: String,
+}, { timestamps: true });
+
+const Quote = mongoose.model("Quote", QuoteSchema);
 
 const sofficePath = process.env.LIBREOFFICE_PATH || null
 
@@ -111,9 +129,20 @@ app.post('/api/increment-count', (req, res) => {
   res.json({ count });
 });
 
-app.post('/api/download/docx', (req, res) => {
+app.post('/api/download/docx', async (req, res) => {
   try {
     const { type, data } = req.body;
+    await Quote.create({
+      ref_no: data.ref_no,
+      client_name: data.client_name,
+      client_number: data.client_number,
+      vendor_name: data.vendor_name,
+      type: data.type,
+      kw: data.kw,
+      base_cost: data.base_cost,
+      final_amount: data.final_amount,
+      date: data.date,
+    });
     const buf = generateDocxBlob(type, data);
     res.setHeader(
       'Content-Type',
@@ -130,11 +159,22 @@ app.post('/api/download/docx', (req, res) => {
   }
 });
 
-app.post('/api/download/pdf', (req, res) => {
+app.post('/api/download/pdf', async (req, res) => {
   let tempDocxPath = null;
   let pdfPath = null;
   try {
     const { type, data } = req.body;
+    await Quote.create({
+      ref_no: data.ref_no,
+      client_name: data.client_name,
+      client_number: data.client_number,
+      vendor_name: data.vendor_name,
+      type: data.type,
+      kw: data.kw,
+      base_cost: data.base_cost,
+      final_amount: data.final_amount,
+      date: data.date,
+    });
     const docxBuf = generateDocxBlob(type, data);
 
     // Save temp docx

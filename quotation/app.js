@@ -187,6 +187,7 @@ function buildPayload() {
     let final_amount = base_cost + gst - total_subsidy - discount;
 
     const payload = {
+        type: document.querySelector('input[name="type"]:checked').value,
         client_number: client_number,
         base_cost: formatCurrency(base_cost),
         client_address: document.getElementById('client_address').value || '',

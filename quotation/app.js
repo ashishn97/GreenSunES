@@ -1,7 +1,7 @@
 const tableDefaults = [
     { component: 'PV Modules',                              spec: 'BIFICAL',                              company: 'Adani',            qty: '10 No.'      },
     { component: 'Grid-Tie Inverter',                        spec: 'Capacity of {{kw}} kW',                company: 'K-Solar/UTL',      qty: '1 Nos.'      },
-    { component: 'Structure',                                spec: 'GP Paip (Apollo) Galvanized',          company: 'Apollo 2mm',       qty: 'As Required' },
+    { component: 'Structure',                                spec: 'GP Pipe (Apollo) Galvanized',          company: 'Apollo 2mm',       qty: 'As Required' },
     { component: 'Meter',                                    spec: 'Net Meter & Solar',                    company: 'Genius / L & T',   qty: '1 set'       },
     { component: 'DC Wire',                                  spec: '4 mm',                                 company: 'Polycab',          qty: 'As Required' },
     { component: 'AC Wire',                                  spec: 'As Required',                          company: 'Aluminium Armoured',qty: 'As Required' },
@@ -29,6 +29,23 @@ function getFormattedDate() {
 
   return `${dd}${mm}${yy}`;
 }
+
+function getClientShortName() {
+    const name = document.getElementById('client_name').value.trim();
+    if (!name) return 'NA';
+
+    const words = name.split(' ');
+
+    if (words.length === 1) {
+        return words[0].slice(0, 3).toUpperCase();
+    }
+
+    const first = words[0].slice(0, 3);
+    const last = words[words.length - 1].slice(0, 3);
+
+    return (first + last).toUpperCase();
+}
+
 function convertNumberToWords(amount) {
     const words = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
       'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
@@ -108,7 +125,7 @@ function calculate() {
     const gst_amount = (base_cost * gst_pct) / 100;
     const total_subsidy = central_subsidy + state_subsidy;
     
-    let final_amount = base_cost + gst_amount - total_subsidy;
+    let final_amount = base_cost + gst_amount;
     if (type === 'client') {
         final_amount -= discount;
     }
@@ -127,7 +144,8 @@ function updateRefNo(){
     const padded = globalCount.toString().padStart(4, '0');
     const tStr = type === 'bank' ? 'B' : 'C';
     const dateStr = getFormattedDate(); 
-    document.getElementById('ref_no').value = `GSE/${tStr}/${kw}kW/${dateStr}/${padded}`;
+    const clientShort = getClientShortName();
+    document.getElementById('ref_no').value = `GSE/${tStr}/${kw}kW/${dateStr}/${clientShort}/${padded}`;
 }
 
 function showToast(msg, type) {
@@ -153,6 +171,7 @@ function setStatus(state) {
 
 function buildPayload() {
     // Only send exact placeholders expected by templates
+    const client_number = document.getElementById('client_number').value;
     const base_cost = parseFloat(document.getElementById('base_cost').value) || 0;
     const gst_pct = parseFloat(document.getElementById('gst_pct').value) || 0;
     const gst = (base_cost * gst_pct) / 100;
@@ -168,6 +187,7 @@ function buildPayload() {
     let final_amount = base_cost + gst - total_subsidy - discount;
 
     const payload = {
+        client_number: client_number,
         base_cost: formatCurrency(base_cost),
         client_address: document.getElementById('client_address').value || '',
         client_name: document.getElementById('client_name').value || '',
@@ -176,7 +196,9 @@ function buildPayload() {
         final_amount: formatCurrency(final_amount),
         gst: formatCurrency(gst),
         kw: document.getElementById('kw').value || '0',
-        ref_no: document.getElementById('ref_no').value || ''
+        ref_no: document.getElementById('ref_no').value || '',
+        vendor_name: document.getElementById('vendor_phone').dataset.vendorName || '',
+        vendor_phone: document.getElementById('vendor_phone').value || ''
     };
     
     if (type === 'client') {
@@ -201,12 +223,15 @@ function saveState() {
         date: document.getElementById('date').value,
         kw: document.getElementById('kw').value,
         client_name: document.getElementById('client_name').value,
+        client_number: document.getElementById('client_number').value,
         client_address: document.getElementById('client_address').value,
         base_cost: document.getElementById('base_cost').value,
         gst_pct: document.getElementById('gst_pct').value,
         central_subsidy: document.getElementById('central_subsidy').value,
         state_subsidy: document.getElementById('state_subsidy').value,
         discount_amount: document.getElementById('discount_amount').value,
+        vendor_select: document.getElementById('vendor_select').value,
+        vendor_phone: document.getElementById('vendor_phone').value,
         table: {}
     };
     for(let i=1; i<=11; i++) {
@@ -228,12 +253,19 @@ function restoreState() {
             document.getElementById('date').value = state.date;
             document.getElementById('kw').value = state.kw;
             document.getElementById('client_name').value = state.client_name;
+            document.getElementById('client_number').value = state.client_number || '';
             document.getElementById('client_address').value = state.client_address;
             document.getElementById('base_cost').value = state.base_cost;
             document.getElementById('gst_pct').value = state.gst_pct;
             document.getElementById('central_subsidy').value = state.central_subsidy;
             document.getElementById('state_subsidy').value = state.state_subsidy;
             document.getElementById('discount_amount').value = state.discount_amount;
+            if (state.vendor_select) {
+                document.getElementById('vendor_select').value = state.vendor_select;
+                document.getElementById('vendor_phone').value = state.vendor_phone || '';
+                const parts = state.vendor_select.split('|');
+                document.getElementById('vendor_phone').dataset.vendorName = parts[0] || '';
+            }
             
             for(let i=1; i<=11; i++) {
                 if(state.table[i]) {
@@ -271,6 +303,9 @@ async function downloadDoc(ext) {
     setStatus('loading');
     
     const type = document.querySelector('input[name="type"]:checked').value;
+
+    updateRefNo();  
+    console.log("REF BEFORE SEND:", document.getElementById('ref_no').value); 
     const payload = buildPayload();
     
     try {
@@ -348,15 +383,39 @@ function init() {
         });
     });
 
+    // Enforce numeric-only on client_number
+    document.getElementById('client_number').addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+        saveState();
+    });
+
+    // Vendor dropdown → auto-fill phone
+    document.getElementById('vendor_select').addEventListener('change', () => {
+        const val = document.getElementById('vendor_select').value;
+        const phoneEl = document.getElementById('vendor_phone');
+        if (val) {
+            const [name, phone] = val.split('|');
+            phoneEl.value = phone || '';
+            phoneEl.dataset.vendorName = name || '';
+        } else {
+            phoneEl.value = '';
+            phoneEl.dataset.vendorName = '';
+        }
+        saveState();
+    });
+
     document.getElementById('btn-doc').addEventListener('click', () => downloadDoc('docx'));
     document.getElementById('btn-pdf').addEventListener('click', () => downloadDoc('pdf'));
 
     document.getElementById('clear-btn').addEventListener('click', () => {
         localStorage.removeItem('gse_quote_state');
         document.querySelectorAll('input:not([type="radio"]), textarea').forEach(el => el.value = '');
+        document.getElementById('vendor_select').value = '';
+        document.getElementById('vendor_phone').value = '';
+        document.getElementById('vendor_phone').dataset.vendorName = '';
         document.getElementById('gst_pct').value = '8.9';
         document.getElementById('central_subsidy').value = '78000';
-        document.getElementById('state_subsidy').value = '18000';
+        document.getElementById('state_subsidy').value = '17000';
         document.querySelector('input[name="type"][value="bank"]').checked = true;
         loadDefaults();
         fetchCount();

@@ -324,7 +324,6 @@ async function downloadDoc(ext) {
         const clientName = document.getElementById('client_name').value || 'Draft';
 
         const safeName = clientName.replace(/[^a-zA-Z0-9]/g, '_');
-        const safeName = (payload.client_name || 'Draft').replace(/[^a-zA-Z0-9]/g, '_');
         
         let filename = `${safeName}_GSE_Quotation.${ext}`;
 

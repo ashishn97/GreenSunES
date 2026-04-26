@@ -283,7 +283,7 @@ function restoreState() {
 
 async function fetchCount() {
     try {
-        const res = await fetch('/api/next-count');
+        const res = await fetch('https://greensunesbe.onrender.com/api/next-count');
         const data = await res.json();
         globalCount = data.count;
         updateRefNo();
@@ -292,7 +292,7 @@ async function fetchCount() {
 
 async function incrementCount() {
     try {
-        const res = await fetch('/api/increment-count', { method: 'POST' });
+        const res = await fetch('https://greensunesbe.onrender.com/api/increment-count', { method: 'POST' });
         const data = await res.json();
         globalCount = data.count;
         updateRefNo();
@@ -310,7 +310,7 @@ async function downloadDoc(ext) {
     const payload = buildPayload();
     
     try {
-        const res = await fetch(`/api/download/${ext}`, {
+        const res = await fetch(`https://greensunesbe.onrender.com/api/download/${ext}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type, data: payload })

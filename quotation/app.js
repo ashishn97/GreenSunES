@@ -321,13 +321,13 @@ async function downloadDoc(ext) {
             throw new Error(err.error || 'Failed to download');
         }
         
-        let filename = res.headers.get('content-disposition');
-        if(filename && filename.indexOf('filename=') !== -1) {
-            filename = filename.split('filename=')[1].replace(/"/g, '');
-        } else {
-            filename = `Quotation.${ext}`;
-        }
+        const clientName = document.getElementById('client_name').value || 'Draft';
+
+        const safeName = clientName.replace(/[^a-zA-Z0-9]/g, '_');
+        const safeName = (payload.client_name || 'Draft').replace(/[^a-zA-Z0-9]/g, '_');
         
+        let filename = `${safeName}_GSE_Quotation.${ext}`;
+
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');

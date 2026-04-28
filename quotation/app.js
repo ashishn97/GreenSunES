@@ -317,8 +317,13 @@ async function downloadDoc(ext) {
         });
         
         if(!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error || 'Failed to download');
+            let errMsg = `Server error ${res.status}`;
+            try {
+                const rawText = await res.text();
+                console.error('Server raw response:', rawText);
+                try { errMsg = JSON.parse(rawText).error || rawText; } catch(e) { errMsg = rawText; }
+            } catch(e2) {}
+            throw new Error(errMsg);
         }
         
         const clientName = document.getElementById('client_name').value || 'Draft';

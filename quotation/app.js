@@ -71,19 +71,34 @@ function formatCurrency(amount) {
 }
 
 function renderTable() {
-    const tbody = document.getElementById('materials-body');
-    tbody.innerHTML = '';
+    const container = document.getElementById('materials-body');
+    container.innerHTML = '';
     for (let i = 0; i < 11; i++) {
         const d = tableDefaults[i];
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${i + 1}</td>
-            <td>${d.component}</td>
-            <td><input type="text" id="spec_${i + 1}" class="row-input"></td>
-            <td><input type="text" id="company_${i + 1}" class="row-input"></td>
-            <td><input type="text" id="qty_${i + 1}" class="row-input"></td>
+        const num = String(i + 1).padStart(2, '0');
+        const card = document.createElement('div');
+        card.className = 'material-card';
+        card.innerHTML = `
+            <div class="material-card-header">
+                <div class="material-card-title">${d.component}</div>
+                <span class="material-card-num">${num}</span>
+            </div>
+            <div class="material-card-body">
+                <div class="material-field">
+                    <label>Specifications</label>
+                    <input type="text" id="spec_${i + 1}" class="row-input">
+                </div>
+                <div class="material-field">
+                    <label>Company / Make</label>
+                    <input type="text" id="company_${i + 1}" class="row-input">
+                </div>
+                <div class="material-field">
+                    <label>Quantity</label>
+                    <input type="text" id="qty_${i + 1}" class="row-input">
+                </div>
+            </div>
         `;
-        tbody.appendChild(tr);
+        container.appendChild(card);
     }
 }
 
@@ -302,6 +317,11 @@ async function incrementCount() {
 async function downloadDoc(ext) {
     if(!validateInputs()) return;
     setStatus('loading');
+
+    // Show loading popup
+    const overlay = document.getElementById('loading-overlay');
+    document.getElementById('loading-msg').textContent = ext === 'pdf' ? 'Generating PDF…' : 'Generating DOCX…';
+    overlay.style.display = 'flex';
     
     const type = document.querySelector('input[name="type"]:checked').value;
 
@@ -351,6 +371,8 @@ async function downloadDoc(ext) {
         console.error(error);
         setStatus('error');
         showToast(error.message, 'error');
+    } finally {
+        document.getElementById('loading-overlay').style.display = 'none';
     }
 }
 

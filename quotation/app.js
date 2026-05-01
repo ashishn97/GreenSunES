@@ -257,11 +257,11 @@ function saveState() {
             qty: document.getElementById(`qty_${i}`).value
         };
     }
-    localStorage.setItem('gse_quote_state', JSON.stringify(state));
+    sessionStorage.setItem('gse_quote_state', JSON.stringify(state));
 }
 
 function restoreState() {
-    const saved = localStorage.getItem('gse_quote_state');
+    const saved = sessionStorage.getItem('gse_quote_state');
     if (saved) {
         try {
             const state = JSON.parse(saved);
@@ -298,7 +298,7 @@ function restoreState() {
 
 async function fetchCount() {
     try {
-        const res = await fetch('https://greensunesbe.onrender.com/api/next-count');
+        const res = await fetch('http://localhost:3000/api/next-count');
         const data = await res.json();
         globalCount = data.count;
         updateRefNo();
@@ -307,7 +307,7 @@ async function fetchCount() {
 
 async function incrementCount() {
     try {
-        const res = await fetch('https://greensunesbe.onrender.com/api/increment-count', { method: 'POST' });
+        const res = await fetch('http://localhost:3000/api/increment-count', { method: 'POST' });
         const data = await res.json();
         globalCount = data.count;
         updateRefNo();
@@ -330,7 +330,7 @@ async function downloadDoc(ext) {
     const payload = buildPayload();
     
     try {
-        const res = await fetch(`https://greensunesbe.onrender.com/api/download/${ext}`, {
+        const res = await fetch(`http://localhost:3000/api/download/${ext}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type, data: payload })
@@ -435,7 +435,7 @@ function init() {
     document.getElementById('btn-pdf').addEventListener('click', () => downloadDoc('pdf'));
 
     document.getElementById('clear-btn').addEventListener('click', () => {
-        localStorage.removeItem('gse_quote_state');
+        sessionStorage.removeItem('gse_quote_state');
         document.querySelectorAll('input:not([type="radio"]), textarea').forEach(el => el.value = '');
         document.getElementById('vendor_select').value = '';
         document.getElementById('vendor_phone').value = '';

@@ -234,7 +234,7 @@ function restoreState() {
             document.getElementById('client_name').value = state.client_name;
             document.getElementById('client_number').value = state.client_number || '';
             document.getElementById('client_address').value = state.client_address;
-            document.getElementById('base_cost').value = state.base_cost;
+            document.getElementById('base_cost').value = String(state.base_cost || '').replace(/,/g, '');
             document.getElementById('gst_pct').value = state.gst_pct;
             document.getElementById('central_subsidy').value = state.central_subsidy;
             document.getElementById('state_subsidy').value = state.state_subsidy;

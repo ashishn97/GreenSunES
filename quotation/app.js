@@ -1,6 +1,8 @@
+const API_BASE_URL = 'http://localhost:3000';
+
 const tableDefaults = [
-    { component: 'PV Modules',                              spec: 'BIFICAL',                              company: 'Adani',            qty: '10 No.'      },
-    { component: 'Grid-Tie Inverter',                        spec: 'Capacity of {{kw}} kW',                company: 'K-Solar/UTL',      qty: '1 Nos.'      },
+    { component: 'PV Modules',                              spec: 'BIFICAL/Topcon',                              company: 'Adani (600+ W)',            qty: '10 No.'      },
+    { component: 'Grid-Tie Inverter',                        spec: 'Capacity of {{kw}} kW',                company: 'K-Solar/Pollycab / Millenium / Foxess',      qty: '1 Nos.'      },
     { component: 'Structure',                                spec: 'GP Pipe (Apollo) Galvanized',          company: 'Apollo 2mm',       qty: 'As Required' },
     { component: 'Meter',                                    spec: 'Net Meter & Solar',                    company: 'Genius / L & T',   qty: '1 set'       },
     { component: 'DC Wire',                                  spec: '4 mm',                                 company: 'Polycab',          qty: 'As Required' },
@@ -13,48 +15,33 @@ const tableDefaults = [
 ];
 
 let globalCount = 0;
+let quoteFinalized = false;
+let isGenerating = false;
 
 function getFormattedDate() {
   const inputDate = document.getElementById('date').value;
-
-  let dateObj;
-  if (inputDate) {
-    dateObj = new Date(inputDate); 
-  } else {
-    dateObj = new Date(); 
-  }
+  let dateObj = inputDate ? new Date(inputDate) : new Date();
   const dd = String(dateObj.getDate()).padStart(2, '0');
   const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
   const yy = String(dateObj.getFullYear()).slice(-2);
-
   return `${dd}${mm}${yy}`;
 }
 
 function getClientShortName() {
     const name = document.getElementById('client_name').value.trim();
     if (!name) return 'NA';
-
     const words = name.split(' ');
-
-    if (words.length === 1) {
-        return words[0].slice(0, 3).toUpperCase();
-    }
-
-    const first = words[0].slice(0, 3);
-    const last = words[words.length - 1].slice(0, 3);
-
-    return (first + last).toUpperCase();
+    if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
+    return (words[0].slice(0, 3) + words[words.length - 1].slice(0, 3)).toUpperCase();
 }
 
 function convertNumberToWords(amount) {
     const words = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
       'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
     const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-    
     if (amount === 0) return 'Zero Rupees Only';
     let a = Math.round(amount).toString();
     if (a.length > 9) return 'Amount too large';
-  
     let n = ('000000000' + a).slice(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
     if (!n) return '';
     let str = '';
@@ -79,25 +66,12 @@ function renderTable() {
         const card = document.createElement('div');
         card.className = 'material-card';
         card.innerHTML = `
-            <div class="material-card-header">
-                <div class="material-card-title">${d.component}</div>
-                <span class="material-card-num">${num}</span>
-            </div>
+            <div class="material-card-header"><div class="material-card-title">${d.component}</div><span class="material-card-num">${num}</span></div>
             <div class="material-card-body">
-                <div class="material-field">
-                    <label>Specifications</label>
-                    <input type="text" id="spec_${i + 1}" class="row-input">
-                </div>
-                <div class="material-field">
-                    <label>Company / Make</label>
-                    <input type="text" id="company_${i + 1}" class="row-input">
-                </div>
-                <div class="material-field">
-                    <label>Quantity</label>
-                    <input type="text" id="qty_${i + 1}" class="row-input">
-                </div>
-            </div>
-        `;
+                <div class="material-field"><label>Specifications</label><input type="text" id="spec_${i + 1}" class="row-input"></div>
+                <div class="material-field"><label>Company / Make</label><input type="text" id="company_${i + 1}" class="row-input"></div>
+                <div class="material-field"><label>Quantity</label><input type="text" id="qty_${i + 1}" class="row-input"></div>
+            </div>`;
         container.appendChild(card);
     }
 }
@@ -107,7 +81,6 @@ function loadDefaults() {
     for (let i = 0; i < 11; i++) {
         const d = tableDefaults[i];
         let specStr = d.spec;
-        // For inverter row, substitute {{kw}} with the current kW value
         if (i === 1) specStr = specStr.replace('{{kw}}', kw);
         document.getElementById(`spec_${i + 1}`).value = specStr;
         document.getElementById(`company_${i + 1}`).value = d.company;
@@ -119,7 +92,6 @@ function validateInputs() {
     const clientName = document.getElementById('client_name').value.trim();
     const kw = document.getElementById('kw').value.trim();
     const baseCost = document.getElementById('base_cost').value.trim();
-    
     if(!clientName || !kw || !baseCost) {
         showToast('Please fill out Client Name, Capacity (kW), and Base Cost.', 'error');
         return false;
@@ -134,33 +106,28 @@ function calculate() {
     const central_subsidy = parseFloat(document.getElementById('central_subsidy').value) || 0;
     const state_subsidy = parseFloat(document.getElementById('state_subsidy').value) || 0;
     const discount = parseFloat(document.getElementById('discount_amount').value) || 0;
-    
     document.getElementById('discount-container').style.display = type === 'client' ? 'block' : 'none';
-
     const gst_amount = (base_cost * gst_pct) / 100;
     const total_subsidy = central_subsidy + state_subsidy;
-    
     let final_amount = base_cost + gst_amount;
-    if (type === 'client') {
-        final_amount -= discount;
-    }
-
+    if (type === 'client') final_amount -= discount;
     document.getElementById('gst_display').value = formatCurrency(gst_amount);
     document.getElementById('total_subsidy').value = formatCurrency(total_subsidy);
     document.getElementById('final_amount').value = formatCurrency(final_amount);
     document.getElementById('final_amount_words').value = convertNumberToWords(final_amount);
-    
     updateRefNo();
 }
 
-function updateRefNo(){ 
+function updateRefNo(){
+    const refInput = document.getElementById('ref_no');
+    if (quoteFinalized && refInput.value) return;
     const type = document.querySelector('input[name="type"]:checked').value;
     const kw = document.getElementById('kw').value || '0';
     const padded = globalCount.toString().padStart(4, '0');
     const tStr = type === 'bank' ? 'B' : 'C';
-    const dateStr = getFormattedDate(); 
+    const dateStr = getFormattedDate();
     const clientShort = getClientShortName();
-    document.getElementById('ref_no').value = `GSE/${tStr}/${kw}kW/${dateStr}/${clientShort}/${padded}`;
+    refInput.value = `GSE/${tStr}/${kw}kW/${dateStr}/${clientShort}/${padded}`;
 }
 
 function showToast(msg, type) {
@@ -169,9 +136,13 @@ function showToast(msg, type) {
     toast.className = `toast ${type}`;
     toast.textContent = msg;
     container.appendChild(toast);
-    setTimeout(() => {
-        toast.remove();
-    }, 4000);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+function setActionDisabled(disabled) {
+    document.getElementById('btn-doc').disabled = disabled;
+    document.getElementById('btn-pdf').disabled = disabled;
+    document.getElementById('clear-btn').disabled = disabled;
 }
 
 function setStatus(state) {
@@ -185,7 +156,6 @@ function setStatus(state) {
 }
 
 function buildPayload() {
-    // Only send exact placeholders expected by templates
     const client_number = document.getElementById('client_number').value;
     const base_cost = parseFloat(document.getElementById('base_cost').value) || 0;
     const gst_pct = parseFloat(document.getElementById('gst_pct').value) || 0;
@@ -194,16 +164,11 @@ function buildPayload() {
     const state_subsidy = parseFloat(document.getElementById('state_subsidy').value) || 0;
     const total_subsidy = central_subsidy + state_subsidy;
     const type = document.querySelector('input[name="type"]:checked').value;
-    let discount = 0;
-    if (type === 'client') {
-        discount = parseFloat(document.getElementById('discount_amount').value) || 0;
-    }
-    
+    let discount = type === 'client' ? parseFloat(document.getElementById('discount_amount').value) || 0 : 0;
     let final_amount = base_cost + gst - total_subsidy - discount;
-
     const payload = {
-        type: document.querySelector('input[name="type"]:checked').value,
-        client_number: client_number,
+        type,
+        client_number,
         base_cost: formatCurrency(base_cost),
         client_address: document.getElementById('client_address').value || '',
         client_name: document.getElementById('client_name').value || '',
@@ -214,28 +179,24 @@ function buildPayload() {
         kw: document.getElementById('kw').value || '0',
         ref_no: document.getElementById('ref_no').value || '',
         vendor_name: document.getElementById('vendor_phone').dataset.vendorName || '',
-        vendor_phone: document.getElementById('vendor_phone').value || ''
+        vendor_phone: document.getElementById('vendor_phone').value || '',
+        central_subsidy: formatCurrency(central_subsidy),
+        state_subsidy: formatCurrency(state_subsidy)
     };
-    
-    if (type === 'client') {
-        payload['Discount_amount'] = formatCurrency(discount);
-    }
-    
-    // spec_1..11 and company_1..11 all exist in templates
-    // qty_1, qty_2, qty_4 are the only qty placeholders in the templates
+    if (type === 'client') payload['Discount_amount'] = formatCurrency(discount);
     for (let i = 1; i <= 11; i++) {
         payload[`spec_${i}`] = document.getElementById(`spec_${i}`).value || '';
         payload[`company_${i}`] = document.getElementById(`company_${i}`).value || '';
+        payload[`qty_${i}`] = document.getElementById(`qty_${i}`).value || '';
     }
-    payload['qty_1'] = document.getElementById('qty_1').value || '';
-    payload['qty_2'] = document.getElementById('qty_2').value || '';
-    payload['qty_4'] = document.getElementById('qty_4').value || '';
     return payload;
 }
 
 function saveState() {
     const state = {
+        quoteFinalized,
         type: document.querySelector('input[name="type"]:checked').value,
+        ref_no: document.getElementById('ref_no').value,
         date: document.getElementById('date').value,
         kw: document.getElementById('kw').value,
         client_name: document.getElementById('client_name').value,
@@ -265,7 +226,9 @@ function restoreState() {
     if (saved) {
         try {
             const state = JSON.parse(saved);
+            quoteFinalized = Boolean(state.quoteFinalized);
             document.querySelector(`input[name="type"][value="${state.type}"]`).checked = true;
+            document.getElementById('ref_no').value = state.ref_no || '';
             document.getElementById('date').value = state.date;
             document.getElementById('kw').value = state.kw;
             document.getElementById('client_name').value = state.client_name;
@@ -279,10 +242,8 @@ function restoreState() {
             if (state.vendor_select) {
                 document.getElementById('vendor_select').value = state.vendor_select;
                 document.getElementById('vendor_phone').value = state.vendor_phone || '';
-                const parts = state.vendor_select.split('|');
-                document.getElementById('vendor_phone').dataset.vendorName = parts[0] || '';
+                document.getElementById('vendor_phone').dataset.vendorName = state.vendor_select.split('|')[0] || '';
             }
-            
             for(let i=1; i<=11; i++) {
                 if(state.table[i]) {
                     document.getElementById(`spec_${i}`).value = state.table[i].spec;
@@ -298,44 +259,37 @@ function restoreState() {
 
 async function fetchCount() {
     try {
-        const res = await fetch('http://localhost:3000/api/next-count');
+        const res = await fetch(`${API_BASE_URL}/api/next-count`);
         const data = await res.json();
         globalCount = data.count;
         updateRefNo();
     } catch(e) { console.error(e); }
 }
 
-async function incrementCount() {
-    try {
-        const res = await fetch('http://localhost:3000/api/increment-count', { method: 'POST' });
-        const data = await res.json();
-        globalCount = data.count;
-        updateRefNo();
-    } catch(e) { console.error(e); }
+function markDraftChanged() {
+    if (!quoteFinalized) return;
+    quoteFinalized = false;
+    fetchCount();
 }
 
 async function downloadDoc(ext) {
+    if (isGenerating) return;
     if(!validateInputs()) return;
+    isGenerating = true;
+    setActionDisabled(true);
     setStatus('loading');
-
-    // Show loading popup
     const overlay = document.getElementById('loading-overlay');
-    document.getElementById('loading-msg').textContent = ext === 'pdf' ? 'Generating PDF…' : 'Generating DOCX…';
+    document.getElementById('loading-msg').textContent = ext === 'pdf' ? 'Generating PDF...' : 'Generating DOCX...';
     overlay.style.display = 'flex';
-    
     const type = document.querySelector('input[name="type"]:checked').value;
-
-    updateRefNo();  
-    console.log("REF BEFORE SEND:", document.getElementById('ref_no').value); 
+    updateRefNo();
     const payload = buildPayload();
-    
     try {
-        const res = await fetch(`http://localhost:3000/api/download/${ext}`, {
+        const res = await fetch(`${API_BASE_URL}/api/download/${ext}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type, data: payload })
         });
-        
         if(!res.ok) {
             let errMsg = `Server error ${res.status}`;
             try {
@@ -345,13 +299,9 @@ async function downloadDoc(ext) {
             } catch(e2) {}
             throw new Error(errMsg);
         }
-        
         const clientName = document.getElementById('client_name').value || 'Draft';
-
         const safeName = clientName.replace(/[^a-zA-Z0-9]/g, '_');
-        
-        let filename = `${safeName}_GSE_Quotation.${ext}`;
-
+        const filename = `${safeName}_GSE_Quotation.${ext}`;
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -362,18 +312,35 @@ async function downloadDoc(ext) {
         a.click();
         window.URL.revokeObjectURL(url);
         a.remove();
-        
+        quoteFinalized = true;
+        saveState();
         setStatus('success');
         showToast(`Successfully downloaded ${ext.toUpperCase()}`, 'success');
-        incrementCount();
-        
     } catch (error) {
         console.error(error);
         setStatus('error');
         showToast(error.message, 'error');
     } finally {
+        isGenerating = false;
+        setActionDisabled(false);
         document.getElementById('loading-overlay').style.display = 'none';
     }
+}
+
+function resetFormForNewQuote() {
+    quoteFinalized = false;
+    sessionStorage.removeItem('gse_quote_state');
+    document.querySelectorAll('input:not([type="radio"]), textarea').forEach(el => el.value = '');
+    document.getElementById('vendor_select').value = '';
+    document.getElementById('vendor_phone').value = '';
+    document.getElementById('vendor_phone').dataset.vendorName = '';
+    document.getElementById('gst_pct').value = '8.9';
+    document.getElementById('central_subsidy').value = '78000';
+    document.getElementById('state_subsidy').value = '17000';
+    document.querySelector('input[name="type"][value="bank"]').checked = true;
+    loadDefaults();
+    fetchCount();
+    calculate();
 }
 
 function init() {
@@ -381,43 +348,37 @@ function init() {
     restoreState();
     fetchCount();
     calculate();
-    
-    // Attach listeners
     document.querySelectorAll('input, textarea').forEach(el => {
         el.addEventListener('input', () => {
+            markDraftChanged();
             if (el.id === 'kw') {
                 const spec2 = document.getElementById('spec_2');
-                if (spec2.value.startsWith('Capacity of')) {
-                    spec2.value = `Capacity of ${el.value} kW`;
-                }
+                if (spec2.value.startsWith('Capacity of')) spec2.value = `Capacity of ${el.value} kW`;
             }
-            calculate();
-            updateRefNo();   
-            saveState();
-        });
-    });
-
-    document.getElementById('date').addEventListener('change', () => {
-        updateRefNo();
-        saveState();
-    });
-
-    document.querySelectorAll('input[name="type"]').forEach(el => {
-        el.addEventListener('change', () => {
             calculate();
             updateRefNo();
             saveState();
         });
     });
-
-    // Enforce numeric-only on client_number
+    document.getElementById('date').addEventListener('change', () => {
+        markDraftChanged();
+        updateRefNo();
+        saveState();
+    });
+    document.querySelectorAll('input[name="type"]').forEach(el => {
+        el.addEventListener('change', () => {
+            markDraftChanged();
+            calculate();
+            updateRefNo();
+            saveState();
+        });
+    });
     document.getElementById('client_number').addEventListener('input', (e) => {
         e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
         saveState();
     });
-
-    // Vendor dropdown → auto-fill phone
     document.getElementById('vendor_select').addEventListener('change', () => {
+        markDraftChanged();
         const val = document.getElementById('vendor_select').value;
         const phoneEl = document.getElementById('vendor_phone');
         if (val) {
@@ -430,24 +391,9 @@ function init() {
         }
         saveState();
     });
-
     document.getElementById('btn-doc').addEventListener('click', () => downloadDoc('docx'));
     document.getElementById('btn-pdf').addEventListener('click', () => downloadDoc('pdf'));
-
-    document.getElementById('clear-btn').addEventListener('click', () => {
-        sessionStorage.removeItem('gse_quote_state');
-        document.querySelectorAll('input:not([type="radio"]), textarea').forEach(el => el.value = '');
-        document.getElementById('vendor_select').value = '';
-        document.getElementById('vendor_phone').value = '';
-        document.getElementById('vendor_phone').dataset.vendorName = '';
-        document.getElementById('gst_pct').value = '8.9';
-        document.getElementById('central_subsidy').value = '78000';
-        document.getElementById('state_subsidy').value = '17000';
-        document.querySelector('input[name="type"][value="bank"]').checked = true;
-        loadDefaults();
-        fetchCount();
-        calculate();
-    });
+    document.getElementById('clear-btn').addEventListener('click', resetFormForNewQuote);
 }
 
 document.addEventListener('DOMContentLoaded', init);

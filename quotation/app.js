@@ -1,14 +1,14 @@
 const API_BASE_URL = 'https://greensunesbe.onrender.com';
 
 const tableDefaults = [
-    { component: 'PV Modules',                              spec: 'BIFICAL/Topcon',                              company: 'Adani (600+ W)',            qty: '10 No.'      },
-    { component: 'Grid-Tie Inverter',                        spec: 'Capacity of {{kw}} kW',                company: 'K-Solar/Pollycab / Millenium / Foxess',      qty: '1 Nos.'      },
+    { component: 'PV Modules',                              spec: 'BIFICAL/Topcon',                              company: 'Adani / Waaree / Tata',            qty: '10 No.'      },
+    { component: 'Grid-Tie Inverter',                        spec: 'Capacity of {{kw}} kW',                company: 'K-Solar / Polycab',      qty: '1 Nos.'      },
     { component: 'Structure',                                spec: 'GP Pipe (Apollo) Galvanized',          company: 'Apollo 2mm',       qty: 'As Required' },
     { component: 'Meter',                                    spec: 'Net Meter & Solar',                    company: 'Genius / L & T',   qty: '1 set'       },
     { component: 'DC Wire',                                  spec: '4 mm',                                 company: 'Polycab',          qty: 'As Required' },
-    { component: 'AC Wire',                                  spec: 'As Required',                          company: 'Aluminium Armoured',qty: 'As Required' },
-    { component: 'Earthing Wire',                            spec: '1" Strip',                             company: 'GI',               qty: 'As Required' },
-    { component: 'Earthing Material',                        spec: '2 Meter GI Earthing Rod + Chemical',   company: 'As Per Standard',  qty: '1 Set'       },
+    { component: 'AC Wire',                                  spec: 'As Required',                          company: 'Polycab / Finolex',qty: 'As Required' },
+    { component: 'Earthing Wire',                            spec: '1" Strip',                             company: 'GI / Tata',               qty: 'As Required' },
+    { component: 'Earthing Material',                        spec: '2 Meter GI Earthing Rod + Chemical',   company: 'GI / Tata',  qty: '1 Set'       },
     { component: 'Lighting Arrestor',                        spec: 'As Required',                          company: 'As Per Standard',  qty: '1 No.'       },
     { component: 'Fitting Accessories',                      spec: 'As Required',                          company: 'As Per Standard',  qty: 'As Required' },
     { component: 'ACDB / DCDB / MCB Box / Busbar / Panel Box', spec: 'As Required',                       company: 'As Per Standard',  qty: '1 Set'       }
@@ -57,6 +57,25 @@ function formatCurrency(amount) {
     return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(amount);
 }
 
+const qtyOptions = ['As Required', '1 No.', '2 No.', '3 No.', '4 No.', '5 No.', '6 No.', '7 No.', '8 No.', '9 No.', '10 No.', '1 Nos.', '1 set', '1 Set'];
+
+function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+
+function renderOptions(options) {
+    return options.map(option => `<option value="${escapeHtml(option)}"></option>`).join('');
+}
+
+function companyOptions(component) {
+    if (component.includes('Modules')) return ['Adani', 'Waaree', 'Tata', 'Adani / Waaree / Tata'];
+    if (component.includes('Inverter')) return ['K-Solar', 'Polycab', 'Foxess', 'K-Solar / Polycab'];
+    if (component.includes('DC Wire')) return ['Polycab'];
+    if (component.includes('AC Wire')) return ['Polycab', 'Finolex', 'Polycab / Finolex'];
+    if (component.includes('Earthing')) return ['GI', 'Tata', 'GI / Tata'];
+    return ['As Per Standard'];
+}
+
 function renderTable() {
     const container = document.getElementById('materials-body');
     container.innerHTML = '';
@@ -69,8 +88,8 @@ function renderTable() {
             <div class="material-card-header"><div class="material-card-title">${d.component}</div><span class="material-card-num">${num}</span></div>
             <div class="material-card-body">
                 <div class="material-field"><label for="spec_${i + 1}">Specifications</label><input type="text" id="spec_${i + 1}" class="row-input"></div>
-                <div class="material-field"><label for="company_${i + 1}">Company / Make</label><input type="text" id="company_${i + 1}" class="row-input"></div>
-                <div class="material-field"><label for="qty_${i + 1}">Quantity</label><input type="text" id="qty_${i + 1}" class="row-input"></div>
+                <div class="material-field"><label for="company_${i + 1}">Company / Make</label><input type="text" id="company_${i + 1}" list="company_options_${i + 1}" class="row-input"><datalist id="company_options_${i + 1}">${renderOptions(companyOptions(d.component))}</datalist></div>
+                <div class="material-field"><label for="qty_${i + 1}">Quantity</label><input type="text" id="qty_${i + 1}" list="qty_options_${i + 1}" class="row-input"><datalist id="qty_options_${i + 1}">${renderOptions(qtyOptions)}</datalist></div>
             </div>`;
         container.appendChild(card);
     }

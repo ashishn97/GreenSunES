@@ -1,10 +1,10 @@
 const API_BASE_URL = 'https://greensunesbe.onrender.com';
 
 const tableDefaults = [
-    { component: 'PV Modules',                              spec: 'BIFICAL/Topcon',                              company: 'Adani / Waaree / Tata',            qty: '10 No.'      },
-    { component: 'Grid-Tie Inverter',                        spec: 'Capacity of {{kw}} kW',                company: 'K-Solar / Polycab',      qty: '1 Nos.'      },
+    { component: 'PV Modules',                              spec: 'TOPCon',                              company: 'Adani',            qty: '10 No.'      },
+    { component: 'Grid-Tie Inverter',                        spec: 'Capacity of {{kw}} kW',                company: 'K Solar / Polycab / Millenium / FoxESS',      qty: '1 Nos.'      },
     { component: 'Structure',                                spec: 'GP Pipe (Apollo) Galvanized',          company: 'Apollo 2mm',       qty: 'As Required' },
-    { component: 'Meter',                                    spec: 'Net Meter & Solar',                    company: 'Genius / L & T',   qty: '1 set'       },
+    { component: 'Meter',                                    spec: 'Net Meter & Solar',                    company: 'Genius / L&T',   qty: '1 set'       },
     { component: 'DC Wire',                                  spec: '4 mm',                                 company: 'Polycab',          qty: 'As Required' },
     { component: 'AC Wire',                                  spec: 'As Required',                          company: 'Polycab / Finolex',qty: 'As Required' },
     { component: 'Earthing Wire',                            spec: '1" Strip',                             company: 'GI / Tata',               qty: 'As Required' },
@@ -67,9 +67,22 @@ function renderOptions(options) {
     return options.map(option => `<option value="${escapeHtml(option)}"></option>`).join('');
 }
 
+function editableInput(id, options = []) {
+    const listId = `${id}_options`;
+    const listAttr = options.length ? ` list="${listId}"` : '';
+    const dataList = options.length ? `<datalist id="${listId}">${renderOptions(options)}</datalist>` : '';
+    return `<input type="text" id="${id}"${listAttr} class="row-input">${dataList}`;
+}
+
+function specOptions(component) {
+    if (component.includes('PV Modules')) return ['Mono PERC', 'Half Cut', 'TOPCon', 'Bifacial'];
+    return [];
+}
+
 function companyOptions(component) {
-    if (component.includes('Modules')) return ['Adani', 'Waaree', 'Tata', 'Adani / Waaree / Tata'];
-    if (component.includes('Inverter')) return ['K-Solar', 'Polycab', 'Foxess', 'K-Solar / Polycab'];
+    if (component.includes('Modules')) return ['GREW', 'Waaree', 'INA Solar', 'Vikram Solar', 'Renew', 'Adani'];
+    if (component.includes('Inverter')) return ['K Solar', 'Polycab', 'Millenium', 'FoxESS'];
+    if (component.includes('Meter')) return ['Genius', 'L&T'];
     if (component.includes('DC Wire')) return ['Polycab'];
     if (component.includes('AC Wire')) return ['Polycab', 'Finolex', 'Polycab / Finolex'];
     if (component.includes('Earthing')) return ['GI', 'Tata', 'GI / Tata'];
@@ -87,9 +100,9 @@ function renderTable() {
         card.innerHTML = `
             <div class="material-card-header"><div class="material-card-title">${d.component}</div><span class="material-card-num">${num}</span></div>
             <div class="material-card-body">
-                <div class="material-field"><label for="spec_${i + 1}">Specifications</label><input type="text" id="spec_${i + 1}" class="row-input"></div>
-                <div class="material-field"><label for="company_${i + 1}">Company / Make</label><input type="text" id="company_${i + 1}" list="company_options_${i + 1}" class="row-input"><datalist id="company_options_${i + 1}">${renderOptions(companyOptions(d.component))}</datalist></div>
-                <div class="material-field"><label for="qty_${i + 1}">Quantity</label><input type="text" id="qty_${i + 1}" list="qty_options_${i + 1}" class="row-input"><datalist id="qty_options_${i + 1}">${renderOptions(qtyOptions)}</datalist></div>
+                <div class="material-field"><label for="spec_${i + 1}">Specifications</label>${editableInput(`spec_${i + 1}`, specOptions(d.component))}</div>
+                <div class="material-field"><label for="company_${i + 1}">Company / Make</label>${editableInput(`company_${i + 1}`, companyOptions(d.component))}</div>
+                <div class="material-field"><label for="qty_${i + 1}">Quantity</label>${editableInput(`qty_${i + 1}`, qtyOptions)}</div>
             </div>`;
         container.appendChild(card);
     }

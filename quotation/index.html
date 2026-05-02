@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <meta name="theme-color" content="#0B2616">
   <meta name="theme-color" content="#0B2616" media="(prefers-color-scheme: dark)">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="GSE Quote">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -128,7 +128,7 @@
           </div>
         </div>
         <div class="combined-input">
-          <label>GST</label>
+        <label for="gst_pct">GST</label>
           <div class="inner-row">
             <div class="input-icon-wrap input-suffix" style="flex:0 0 110px">
               <input type="number" id="gst_pct" value="8.9" step="0.1">
@@ -165,7 +165,7 @@
       </div>
 
       <div class="final-box">
-        <label>Final Payable Amount</label>
+        <label for="final_amount">Final Payable Amount</label>
         <input type="text" id="final_amount" readonly>
         <input type="text" id="final_amount_words" readonly>
       </div>

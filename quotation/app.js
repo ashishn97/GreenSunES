@@ -68,9 +68,9 @@ function renderTable() {
         card.innerHTML = `
             <div class="material-card-header"><div class="material-card-title">${d.component}</div><span class="material-card-num">${num}</span></div>
             <div class="material-card-body">
-                <div class="material-field"><label>Specifications</label><input type="text" id="spec_${i + 1}" class="row-input"></div>
-                <div class="material-field"><label>Company / Make</label><input type="text" id="company_${i + 1}" class="row-input"></div>
-                <div class="material-field"><label>Quantity</label><input type="text" id="qty_${i + 1}" class="row-input"></div>
+                <div class="material-field"><label for="spec_${i + 1}">Specifications</label><input type="text" id="spec_${i + 1}" class="row-input"></div>
+                <div class="material-field"><label for="company_${i + 1}">Company / Make</label><input type="text" id="company_${i + 1}" class="row-input"></div>
+                <div class="material-field"><label for="qty_${i + 1}">Quantity</label><input type="text" id="qty_${i + 1}" class="row-input"></div>
             </div>`;
         container.appendChild(card);
     }

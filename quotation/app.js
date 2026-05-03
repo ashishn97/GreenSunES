@@ -183,6 +183,7 @@ function calculate() {
     const total_subsidy = central_subsidy + state_subsidy;
     let final_amount = base_cost + gst_amount;
     if (type === 'client') final_amount -= discount;
+    final_amount = Math.round(final_amount);
     document.getElementById('gst_display').value = formatCurrency(gst_amount);
     document.getElementById('total_subsidy').value = formatCurrency(total_subsidy);
     document.getElementById('final_amount').value = formatCurrency(final_amount);

@@ -44,6 +44,32 @@ header {
   margin-right: auto;
 }
 
+.header-nav {
+  display: flex;
+  align-items: center;
+}
+
+.btn-history-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  border: 1.5px solid rgba(74, 124, 89, 0.3);
+  text-decoration: none;
+  transition: all 0.2s;
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+.btn-history-nav:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
 .logo {
   font-size: 1.15rem;
   font-weight: 700;

@@ -1,30 +1,35 @@
 const API_BASE_URL = 'https://greensunesbe.onrender.com';
 
 const tableDefaults = [
-    { component: 'PV Modules',                              spec: 'TOPCon',                              company: 'Adani',            qty: '10 No.'      },
-    { component: 'Grid-Tie Inverter',                        spec: 'Capacity of {{kw}} kW',                company: 'K Solar / Polycab / Millenium / FoxESS',      qty: '1 Nos.'      },
-    { component: 'Structure',                                spec: 'GP Pipe (Apollo) Galvanized',          company: 'Apollo 2mm',       qty: 'As Required' },
-    { component: 'Meter',                                    spec: 'Net Meter & Solar',                    company: 'Genius / L&T',   qty: '1 set'       },
-    { component: 'DC Wire',                                  spec: '4 mm',                                 company: 'Polycab',          qty: 'As Required' },
-    { component: 'AC Wire',                                  spec: 'As Required',                          company: 'Polycab / Finolex',qty: 'As Required' },
-    { component: 'Earthing Wire',                            spec: '1" Strip',                             company: 'GI / Tata',               qty: 'As Required' },
-    { component: 'Earthing Material',                        spec: '2 Meter GI Earthing Rod + Chemical',   company: 'GI / Tata',  qty: '1 Set'       },
-    { component: 'Lighting Arrestor',                        spec: 'As Required',                          company: 'As Per Standard',  qty: '1 No.'       },
-    { component: 'Fitting Accessories',                      spec: 'As Required',                          company: 'As Per Standard',  qty: 'As Required' },
-    { component: 'ACDB / DCDB / MCB Box / Busbar / Panel Box', spec: 'As Required',                       company: 'As Per Standard',  qty: '1 Set'       }
+    { component: 'PV Modules', spec: 'TOPCon', company: 'Adani', qty: '10 No.' },
+    { component: 'Grid-Tie Inverter', spec: 'Capacity of {{kw}} kW', company: 'K Solar / Polycab / Millenium / FoxESS', qty: '1 Nos.' },
+    { component: 'Structure', spec: 'GP Pipe (Apollo) Galvanized', company: 'Apollo 2mm', qty: 'As Required' },
+    { component: 'Meter', spec: 'Net Meter & Solar', company: 'Genius / L&T', qty: '1 set' },
+    { component: 'DC Wire', spec: '4 mm', company: 'Polycab', qty: 'As Required' },
+    { component: 'AC Wire', spec: 'As Required', company: 'Polycab / Finolex', qty: 'As Required' },
+    { component: 'Earthing Wire', spec: '1" Strip', company: 'GI / Tata', qty: 'As Required' },
+    { component: 'Earthing Material', spec: '2 Meter GI Earthing Rod + Chemical', company: 'GI / Tata', qty: '1 Set' },
+    { component: 'Lighting Arrestor', spec: 'As Required', company: 'As Per Standard', qty: '1 No.' },
+    { component: 'Fitting Accessories', spec: 'As Required', company: 'As Per Standard', qty: 'As Required' },
+    { component: 'ACDB / DCDB / MCB Box / Busbar / Panel Box', spec: 'As Required', company: 'As Per Standard', qty: '1 Set' }
 ];
+
+let qtyOptions = ['As Required', '1 set', '1 Set'];
+for (let i = 1; i <= 100; i++) {
+    qtyOptions.push(`${i} No.`);
+}
 
 let globalCount = 0;
 let quoteFinalized = false;
 let isGenerating = false;
 
 function getFormattedDate() {
-  const inputDate = document.getElementById('date').value;
-  let dateObj = inputDate ? new Date(inputDate) : new Date();
-  const dd = String(dateObj.getDate()).padStart(2, '0');
-  const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const yy = String(dateObj.getFullYear()).slice(-2);
-  return `${dd}${mm}${yy}`;
+    const inputDate = document.getElementById('date').value;
+    let dateObj = inputDate ? new Date(inputDate) : new Date();
+    const dd = String(dateObj.getDate()).padStart(2, '0');
+    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const yy = String(dateObj.getFullYear()).slice(-2);
+    return `${dd}${mm}${yy}`;
 }
 
 function getClientShortName() {
@@ -37,7 +42,7 @@ function getClientShortName() {
 
 function convertNumberToWords(amount) {
     const words = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
-      'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
     const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
     if (amount === 0) return 'Zero Rupees Only';
     let a = Math.round(amount).toString();
@@ -57,10 +62,21 @@ function formatCurrency(amount) {
     return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(amount);
 }
 
-const qtyOptions = ['As Required', '1 No.', '2 No.', '3 No.', '4 No.', '5 No.', '6 No.', '7 No.', '8 No.', '9 No.', '10 No.', '1 Nos.', '1 set', '1 Set'];
 
 function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+
+function setSelectValue(id, value) {
+    const el = document.getElementById(id);
+    if (el && el.tomselect) {
+        if (!el.tomselect.options[value]) {
+            el.tomselect.addOption({ value: value, text: value });
+        }
+        el.tomselect.setValue(value, true);
+    } else if (el) {
+        el.value = value;
+    }
 }
 
 function renderOptions(options) {
@@ -68,10 +84,12 @@ function renderOptions(options) {
 }
 
 function editableInput(id, options = []) {
-    const listId = `${id}_options`;
-    const listAttr = options.length ? ` list="${listId}"` : '';
-    const dataList = options.length ? `<datalist id="${listId}">${renderOptions(options)}</datalist>` : '';
-    return `<input type="text" id="${id}"${listAttr} class="row-input">${dataList}`;
+    let html = `<select id="${id}" class="row-input custom-select">`;
+    options.forEach(opt => {
+        html += `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`;
+    });
+    html += `</select>`;
+    return html;
 }
 
 function specOptions(component) {
@@ -106,6 +124,28 @@ function renderTable() {
             </div>`;
         container.appendChild(card);
     }
+
+    // Initialize Tom Select
+    for (let i = 0; i < 11; i++) {
+        const ids = [`spec_${i + 1}`, `company_${i + 1}`, `qty_${i + 1}`];
+        ids.forEach(id => {
+            let config = {
+                create: true,
+                maxOptions: null
+            };
+            if (id.startsWith('qty_')) {
+                config.sortField = [{ field: '$order' }];
+            }
+            new TomSelect(`#${id}`, config);
+            // Re-trigger calculation and state save on change
+            document.getElementById(id).addEventListener('change', () => {
+                markDraftChanged();
+                calculate();
+                updateRefNo();
+                saveState();
+            });
+        });
+    }
 }
 
 function loadDefaults() {
@@ -114,9 +154,9 @@ function loadDefaults() {
         const d = tableDefaults[i];
         let specStr = d.spec;
         if (i === 1) specStr = specStr.replace('{{kw}}', kw);
-        document.getElementById(`spec_${i + 1}`).value = specStr;
-        document.getElementById(`company_${i + 1}`).value = d.company;
-        document.getElementById(`qty_${i + 1}`).value = d.qty;
+        setSelectValue(`spec_${i + 1}`, specStr);
+        setSelectValue(`company_${i + 1}`, d.company);
+        setSelectValue(`qty_${i + 1}`, d.qty);
     }
 }
 
@@ -124,7 +164,7 @@ function validateInputs() {
     const clientName = document.getElementById('client_name').value.trim();
     const kw = document.getElementById('kw').value.trim();
     const baseCost = document.getElementById('base_cost').value.trim();
-    if(!clientName || !kw || !baseCost) {
+    if (!clientName || !kw || !baseCost) {
         showToast('Please fill out Client Name, Capacity (kW), and Base Cost.', 'error');
         return false;
     }
@@ -150,7 +190,7 @@ function calculate() {
     updateRefNo();
 }
 
-function updateRefNo(){
+function updateRefNo() {
     const refInput = document.getElementById('ref_no');
     if (quoteFinalized && refInput.value) return;
     const type = document.querySelector('input[name="type"]:checked').value;
@@ -194,10 +234,10 @@ function buildPayload() {
     const gst = (base_cost * gst_pct) / 100;
     const central_subsidy = parseFloat(document.getElementById('central_subsidy').value) || 0;
     const state_subsidy = parseFloat(document.getElementById('state_subsidy').value) || 0;
-    const total_subsidy = central_subsidy + state_subsidy;
     const type = document.querySelector('input[name="type"]:checked').value;
     let discount = type === 'client' ? parseFloat(document.getElementById('discount_amount').value) || 0 : 0;
-    let final_amount = base_cost + gst - total_subsidy - discount;
+    let final_amount = base_cost + gst;
+    if (type === 'client') final_amount -= discount;
     const payload = {
         type,
         client_number,
@@ -243,7 +283,7 @@ function saveState() {
         vendor_phone: document.getElementById('vendor_phone').value,
         table: {}
     };
-    for(let i=1; i<=11; i++) {
+    for (let i = 1; i <= 11; i++) {
         state.table[i] = {
             spec: document.getElementById(`spec_${i}`).value,
             company: document.getElementById(`company_${i}`).value,
@@ -273,17 +313,20 @@ function restoreState() {
             document.getElementById('discount_amount').value = state.discount_amount;
             if (state.vendor_select) {
                 document.getElementById('vendor_select').value = state.vendor_select;
+                if (document.getElementById('vendor_select').tomselect) {
+                    document.getElementById('vendor_select').tomselect.setValue(state.vendor_select, true);
+                }
                 document.getElementById('vendor_phone').value = state.vendor_phone || '';
                 document.getElementById('vendor_phone').dataset.vendorName = state.vendor_select.split('|')[0] || '';
             }
-            for(let i=1; i<=11; i++) {
-                if(state.table[i]) {
-                    document.getElementById(`spec_${i}`).value = state.table[i].spec;
-                    document.getElementById(`company_${i}`).value = state.table[i].company;
-                    document.getElementById(`qty_${i}`).value = state.table[i].qty;
+            for (let i = 1; i <= 11; i++) {
+                if (state.table[i]) {
+                    setSelectValue(`spec_${i}`, state.table[i].spec);
+                    setSelectValue(`company_${i}`, state.table[i].company);
+                    setSelectValue(`qty_${i}`, state.table[i].qty);
                 }
             }
-        } catch(e) {}
+        } catch (e) { }
     } else {
         loadDefaults();
     }
@@ -295,7 +338,7 @@ async function fetchCount() {
         const data = await res.json();
         globalCount = data.count;
         updateRefNo();
-    } catch(e) { console.error(e); }
+    } catch (e) { console.error(e); }
 }
 
 function markDraftChanged() {
@@ -306,7 +349,7 @@ function markDraftChanged() {
 
 async function downloadDoc(ext) {
     if (isGenerating) return;
-    if(!validateInputs()) return;
+    if (!validateInputs()) return;
     isGenerating = true;
     setActionDisabled(true);
     setStatus('loading');
@@ -322,13 +365,13 @@ async function downloadDoc(ext) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type, data: payload })
         });
-        if(!res.ok) {
+        if (!res.ok) {
             let errMsg = `Server error ${res.status}`;
             try {
                 const rawText = await res.text();
                 console.error('Server raw response:', rawText);
-                try { errMsg = JSON.parse(rawText).error || rawText; } catch(e) { errMsg = rawText; }
-            } catch(e2) {}
+                try { errMsg = JSON.parse(rawText).error || rawText; } catch (e) { errMsg = rawText; }
+            } catch (e2) { }
             throw new Error(errMsg);
         }
         const clientName = document.getElementById('client_name').value || 'Draft';
@@ -364,6 +407,9 @@ function resetFormForNewQuote() {
     sessionStorage.removeItem('gse_quote_state');
     document.querySelectorAll('input:not([type="radio"]), textarea').forEach(el => el.value = '');
     document.getElementById('vendor_select').value = '';
+    if (document.getElementById('vendor_select').tomselect) {
+        document.getElementById('vendor_select').tomselect.clear();
+    }
     document.getElementById('vendor_phone').value = '';
     document.getElementById('vendor_phone').dataset.vendorName = '';
     document.getElementById('gst_pct').value = '8.9';
@@ -376,6 +422,7 @@ function resetFormForNewQuote() {
 }
 
 function init() {
+    new TomSelect('#vendor_select', { create: false, sortField: [{ field: '$order' }] });
     renderTable();
     restoreState();
     fetchCount();
@@ -385,7 +432,12 @@ function init() {
             markDraftChanged();
             if (el.id === 'kw') {
                 const spec2 = document.getElementById('spec_2');
-                if (spec2.value.startsWith('Capacity of')) spec2.value = `Capacity of ${el.value} kW`;
+                const newVal = `Capacity of ${el.value} kW`;
+                if (spec2 && spec2.tomselect && spec2.tomselect.getValue().startsWith('Capacity of')) {
+                    setSelectValue('spec_2', newVal);
+                } else if (spec2 && spec2.value.startsWith('Capacity of')) {
+                    spec2.value = newVal;
+                }
             }
             calculate();
             updateRefNo();

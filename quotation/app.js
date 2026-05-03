@@ -239,6 +239,7 @@ function buildPayload() {
     let discount = type === 'client' ? parseFloat(document.getElementById('discount_amount').value) || 0 : 0;
     let final_amount = base_cost + gst;
     if (type === 'client') final_amount -= discount;
+    final_amount = Math.round(final_amount);
     const payload = {
         type,
         client_number,

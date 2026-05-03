@@ -115,10 +115,14 @@ function renderTable() {
         const num = String(i + 1).padStart(2, '0');
         const card = document.createElement('div');
         card.className = 'material-card';
+        let specHtml = editableInput(`spec_${i + 1}`, specOptions(d.component));
+        if (i === 1) {
+            specHtml = `<input type="text" id="spec_2" placeholder="Capacity of X kW">`;
+        }
         card.innerHTML = `
             <div class="material-card-header"><div class="material-card-title">${d.component}</div><span class="material-card-num">${num}</span></div>
             <div class="material-card-body">
-                <div class="material-field"><label for="spec_${i + 1}">Specifications</label>${editableInput(`spec_${i + 1}`, specOptions(d.component))}</div>
+                <div class="material-field"><label for="spec_${i + 1}">Specifications</label>${specHtml}</div>
                 <div class="material-field"><label for="company_${i + 1}">Company / Make</label>${editableInput(`company_${i + 1}`, companyOptions(d.component))}</div>
                 <div class="material-field"><label for="qty_${i + 1}">Quantity</label>${editableInput(`qty_${i + 1}`, qtyOptions)}</div>
             </div>`;
@@ -129,8 +133,11 @@ function renderTable() {
     for (let i = 0; i < 11; i++) {
         const ids = [`spec_${i + 1}`, `company_${i + 1}`, `qty_${i + 1}`];
         ids.forEach(id => {
+            if (id === 'spec_2') return;
             let config = {
                 create: true,
+                createOnBlur: true,
+                plugins: ['clear_button', 'restore_on_backspace'],
                 maxOptions: null
             };
             if (id.startsWith('qty_')) {

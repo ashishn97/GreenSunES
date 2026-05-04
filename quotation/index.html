@@ -52,19 +52,16 @@
       </svg>
       GSE Quotation Generator
     </div>
-    <div class="header-nav">
-      <a href="history.html" class="btn-history-nav">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <polyline points="12 6 12 12 16 14"></polyline>
-        </svg>
-        History
-      </a>
-    </div>
-    <div class="status-indicator">
-      <div id="status-dot" class="dot idle"></div>
-      <span id="status-text">Ready</span>
-    </div>
+    <a href="history.html" class="btn-history-nav" aria-label="View quotation history">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+      History
+    </a>
+    <!-- Status indicator: visually hidden, used by JS only -->
+    <div id="status-dot" class="dot idle" style="display:none;"></div>
+    <span id="status-text" style="display:none;"></span>
   </header>
 
   <main>

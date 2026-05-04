@@ -14,9 +14,35 @@ const tableDefaults = [
     { component: 'ACDB / DCDB / MCB Box / Busbar / Panel Box', spec: 'As Required', company: 'As Per Standard', qty: '1 Set' }
 ];
 
-let qtyOptions = ['As Required', '1 set', '1 Set'];
-for (let i = 1; i <= 100; i++) {
-    qtyOptions.push(`${i} No.`);
+function getQtyValue(index) {
+    const mode = document.querySelector(`input[name="qty_mode_${index}"]:checked`).value;
+    if (mode === 'as_required') return 'As Required';
+    const num = document.getElementById(`qty_custom_${index}`).value;
+    if (!num) return '';
+    return Number(num) <= 1 ? `${num} No.` : `${num} Nos.`;
+}
+
+function setQtyValue(index, value) {
+    if (!value) value = 'As Required';
+    const isAsReq = (value.toLowerCase() === 'as required');
+    
+    const asReqRadio = document.querySelector(`input[name="qty_mode_${index}"][value="as_required"]`);
+    const customRadio = document.querySelector(`input[name="qty_mode_${index}"][value="custom"]`);
+    const customInput = document.getElementById(`qty_custom_${index}`);
+    
+    if (asReqRadio) asReqRadio.checked = isAsReq;
+    if (customRadio) customRadio.checked = !isAsReq;
+    
+    if (customInput) {
+        if (isAsReq) {
+            customInput.style.display = 'none';
+            customInput.value = '';
+        } else {
+            customInput.style.display = 'block';
+            const numMatch = value.match(/\d+(\.\d+)?/);
+            customInput.value = numMatch ? numMatch[0] : '';
+        }
+    }
 }
 
 let globalCount = 0;
@@ -119,19 +145,28 @@ function renderTable() {
         if (i === 1) {
             specHtml = `<input type="text" id="spec_2" placeholder="Capacity of X kW">`;
         }
+        
+        let qtyHtml = `
+            <div class="qty-segment" role="group" aria-label="Quantity type">
+                <label><input type="radio" name="qty_mode_${i + 1}" value="as_required" checked><span>As Required</span></label>
+                <label><input type="radio" name="qty_mode_${i + 1}" value="custom"><span>Custom</span></label>
+            </div>
+            <input type="number" id="qty_custom_${i + 1}" class="qty-custom-input" placeholder="Enter qty" min="0" step="any" style="display:none;">
+        `;
+
         card.innerHTML = `
             <div class="material-card-header"><div class="material-card-title">${d.component}</div><span class="material-card-num">${num}</span></div>
             <div class="material-card-body">
                 <div class="material-field"><label for="spec_${i + 1}">Specifications</label>${specHtml}</div>
                 <div class="material-field"><label for="company_${i + 1}">Company / Make</label>${editableInput(`company_${i + 1}`, companyOptions(d.component))}</div>
-                <div class="material-field"><label for="qty_${i + 1}">Quantity</label>${editableInput(`qty_${i + 1}`, qtyOptions)}</div>
+                <div class="material-field"><label>Quantity</label>${qtyHtml}</div>
             </div>`;
         container.appendChild(card);
     }
 
     // Initialize Tom Select
     for (let i = 0; i < 11; i++) {
-        const ids = [`spec_${i + 1}`, `company_${i + 1}`, `qty_${i + 1}`];
+        const ids = [`spec_${i + 1}`, `company_${i + 1}`];
         ids.forEach(id => {
             if (id === 'spec_2') return;
             let config = {
@@ -140,9 +175,6 @@ function renderTable() {
                 plugins: ['clear_button', 'restore_on_backspace'],
                 maxOptions: null
             };
-            if (id.startsWith('qty_')) {
-                config.sortField = [{ field: '$order' }];
-            }
             new TomSelect(`#${id}`, config);
             // Re-trigger calculation and state save on change
             document.getElementById(id).addEventListener('change', () => {
@@ -151,6 +183,30 @@ function renderTable() {
                 updateRefNo();
                 saveState();
             });
+        });
+
+        // Event listeners for quantity radios and inputs
+        document.querySelectorAll(`input[name="qty_mode_${i + 1}"]`).forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const customInput = document.getElementById(`qty_custom_${i + 1}`);
+                if (e.target.value === 'custom') {
+                    customInput.style.display = 'block';
+                    if (!customInput.value) customInput.value = '1';
+                } else {
+                    customInput.style.display = 'none';
+                }
+                markDraftChanged();
+                calculate();
+                updateRefNo();
+                saveState();
+            });
+        });
+
+        document.getElementById(`qty_custom_${i + 1}`).addEventListener('input', () => {
+            markDraftChanged();
+            calculate();
+            updateRefNo();
+            saveState();
         });
     }
 }
@@ -163,7 +219,7 @@ function loadDefaults() {
         if (i === 1) specStr = specStr.replace('{{kw}}', kw);
         setSelectValue(`spec_${i + 1}`, specStr);
         setSelectValue(`company_${i + 1}`, d.company);
-        setSelectValue(`qty_${i + 1}`, d.qty);
+        setQtyValue(i + 1, d.qty);
     }
 }
 
@@ -268,7 +324,7 @@ function buildPayload() {
     for (let i = 1; i <= 11; i++) {
         payload[`spec_${i}`] = document.getElementById(`spec_${i}`).value || '';
         payload[`company_${i}`] = document.getElementById(`company_${i}`).value || '';
-        payload[`qty_${i}`] = document.getElementById(`qty_${i}`).value || '';
+        payload[`qty_${i}`] = getQtyValue(i);
     }
     return payload;
 }
@@ -296,7 +352,7 @@ function saveState() {
         state.table[i] = {
             spec: document.getElementById(`spec_${i}`).value,
             company: document.getElementById(`company_${i}`).value,
-            qty: document.getElementById(`qty_${i}`).value
+            qty: getQtyValue(i)
         };
     }
     sessionStorage.setItem('gse_quote_state', JSON.stringify(state));
@@ -332,7 +388,7 @@ function restoreState() {
                 if (state.table[i]) {
                     setSelectValue(`spec_${i}`, state.table[i].spec);
                     setSelectValue(`company_${i}`, state.table[i].company);
-                    setSelectValue(`qty_${i}`, state.table[i].qty);
+                    setQtyValue(i, state.table[i].qty);
                 }
             }
         } catch (e) { }
